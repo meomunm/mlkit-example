@@ -19,16 +19,6 @@ import com.google.mlkit.vision.face.FaceDetectorOptions;
 import com.example.myapplication.custom.CameraSource.SizePair;
 
 public class PreferenceUtils {
-
-    private static final int POSE_DETECTOR_PERFORMANCE_MODE_FAST = 1;
-
-    static void saveString(Context context, @StringRes int prefKeyId, @Nullable String value) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-                .edit()
-                .putString(context.getString(prefKeyId), value)
-                .apply();
-    }
-
     @Nullable
     public static SizePair getCameraPreviewSizePair(Context context, int cameraId) {
         Preconditions.checkArgument(
@@ -54,23 +44,6 @@ public class PreferenceUtils {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    @Nullable
-    public static android.util.Size getCameraXTargetResolution(Context context, int lensfacing) {
-        Preconditions.checkArgument(
-                lensfacing == CameraSelector.LENS_FACING_BACK
-                        || lensfacing == CameraSelector.LENS_FACING_FRONT);
-        String prefKey =
-                lensfacing == CameraSelector.LENS_FACING_BACK
-                        ? context.getString(R.string.pref_key_camerax_rear_camera_target_resolution)
-                        : context.getString(R.string.pref_key_camerax_front_camera_target_resolution);
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        try {
-            return android.util.Size.parseSize(sharedPreferences.getString(prefKey, null));
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
     public static FaceDetectorOptions getFaceDetectorOptionsForLivePreview(Context context) {
         int landmarkMode =
@@ -115,20 +88,6 @@ public class PreferenceUtils {
             optionsBuilder.enableTracking();
         }
         return optionsBuilder.build();
-    }
-
-    public static boolean shouldShowPoseDetectionInFrameLikelihoodLivePreview(Context context) {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        String prefKey =
-                context.getString(R.string.pref_key_live_preview_pose_detector_show_in_frame_likelihood);
-        return sharedPreferences.getBoolean(prefKey, false);
-    }
-
-    public static boolean shouldShowPoseDetectionInFrameLikelihoodStillImage(Context context) {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        String prefKey =
-                context.getString(R.string.pref_key_still_image_pose_detector_show_in_frame_likelihood);
-        return sharedPreferences.getBoolean(prefKey, false);
     }
 
     /**

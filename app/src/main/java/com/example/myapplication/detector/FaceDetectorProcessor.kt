@@ -3,6 +3,7 @@ package com.example.myapplication.detector
 import android.content.Context
 import android.util.Log
 import com.example.myapplication.custom.GraphicOverlay
+import com.example.myapplication.graphics_overlay.FaceGraphic
 import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.*
@@ -34,10 +35,11 @@ class FaceDetectorProcessor(context: Context, detectorOptions: FaceDetectorOptio
         return detector.process(image)
     }
 
-    override fun onSuccess(faces: List<Face>, graphicOverlay: GraphicOverlay) {
-        for (face in faces) {
+    override fun onSuccess(results: List<Face>, graphicOverlay: GraphicOverlay) {
+        for (face in results) {
+            Log.e(TAG, "onSuccess: size ${face.allContours.size} ")
             graphicOverlay.add(FaceGraphic(graphicOverlay, face))
-            logExtrasForTesting(face)
+//            logExtrasForTesting(face)
         }
     }
 

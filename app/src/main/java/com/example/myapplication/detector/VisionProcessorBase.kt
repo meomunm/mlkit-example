@@ -12,6 +12,8 @@ import androidx.annotation.RequiresApi
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageProxy
 import com.example.myapplication.custom.GraphicOverlay
+import com.example.myapplication.graphics_overlay.CameraImageGraphic
+import com.example.myapplication.graphics_overlay.InferenceInfoGraphic
 import com.example.myapplication.preference.*
 import com.example.myapplication.utils.addOnFailureListener
 import com.example.myapplication.utils.addOnSuccessListener
@@ -197,6 +199,7 @@ abstract class VisionProcessorBase<T>(context: Context) : VisionImageProcessor {
                 val availableMegs = mi.availMem / 0x100000L
                 Log.d(TAG, "Memory available in system: $availableMegs MB")
             }
+            Log.e(TAG, "draw: clear()")
             graphicOverlay.clear()
             if (originalCameraImage != null) {
                 graphicOverlay.add(
@@ -214,6 +217,7 @@ abstract class VisionProcessorBase<T>(context: Context) : VisionImageProcessor {
                     if (shouldShowFps) framesPerSecond else null
                 )
             )
+            Log.e(TAG, "requestDetectInImage: ${results}}")
             this@VisionProcessorBase.onSuccess(results, graphicOverlay)
             graphicOverlay.postInvalidate()
         }
