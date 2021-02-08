@@ -3,6 +3,7 @@ package com.example.myapplication.screen
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -11,6 +12,7 @@ import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import com.example.myapplication.R
 import com.example.myapplication.custom.GraphicOverlay
 import com.example.myapplication.detector.FaceDetectorProcessor
@@ -29,6 +31,7 @@ class PreviewImageActivity : AppCompatActivity() {
 
     private var imageUri: Uri? = null
     private var graphicOverlay: GraphicOverlay? = null
+    private var graphicOverlaySecond: GraphicOverlay? = null
     private var imageMaxWidth = 0
     private var selectedSize: String? = SIZE_SCREEN
     private var imageMaxHeight = 0
@@ -98,6 +101,7 @@ class PreviewImageActivity : AppCompatActivity() {
         btnBack = findViewById(R.id.btn_back)
         btnDone = findViewById(R.id.btn_done)
         graphicOverlay = findViewById(R.id.graphic_overlay)
+        graphicOverlaySecond = findViewById(R.id.graphic_overlay_second)
     }
 
     private fun listener() {
@@ -129,6 +133,7 @@ class PreviewImageActivity : AppCompatActivity() {
             val imageBitmap = BitmapUtils.getBitmapFromContentUri(contentResolver, imageUri) ?: return
 
             graphicOverlay!!.clear()
+            graphicOverlaySecond!!.clear()
 
             val targetedSize = targetedWidthHeight
 
@@ -148,7 +153,14 @@ class PreviewImageActivity : AppCompatActivity() {
                 graphicOverlay!!.setImageSourceInfo(
                     resizedBitmap.width, resizedBitmap.height, /* isFlipped= */false
                 )
+                val secondBm = (AppCompatResources.getDrawable(this, R.drawable.result_not_crop) as BitmapDrawable).bitmap
+                graphicOverlaySecond!!.setImageSourceInfo(
+                    secondBm.width, secondBm.height, /* isFlipped= */false
+                )
+
                 imageProcessor!!.processBitmap(resizedBitmap, graphicOverlay)
+
+                imageProcessor!!.processBitmap(secondBm, graphicOverlaySecond)
             } else {
                 Log.e(
                     TAG,

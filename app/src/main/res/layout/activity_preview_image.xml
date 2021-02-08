@@ -24,7 +24,9 @@
         android:layout_height="48dp"/>
 
     <ImageView
-        android:id="@+id/iv_preview_image"
+        android:src="@drawable/result"
+        android:visibility="visible"
+        android:id="@+id/iv_model_image"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
@@ -32,9 +34,17 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:src="@drawable/result"
+        android:id="@+id/iv_preview_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        app:layout_constraintBottom_toBottomOf="@id/iv_model_image"
+        app:layout_constraintTop_toTopOf="@id/iv_model_image" />
+
+    <ImageView
+        android:src="@drawable/result_not_crop"
         android:visibility="gone"
-        android:id="@+id/iv_model_image"
+        android:id="@+id/iv_model_image_no_crop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:adjustViewBounds="true"
@@ -56,6 +66,15 @@
 
     <com.example.myapplication.custom.GraphicOverlay
         android:id="@+id/graphic_overlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/iv_preview_image"
+        app:layout_constraintEnd_toEndOf="@id/iv_preview_image"
+        app:layout_constraintStart_toStartOf="@id/iv_preview_image"
+        app:layout_constraintTop_toTopOf="@id/iv_preview_image" />
+
+    <com.example.myapplication.custom.GraphicOverlay
+        android:id="@+id/graphic_overlay_second"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="@id/iv_preview_image"
