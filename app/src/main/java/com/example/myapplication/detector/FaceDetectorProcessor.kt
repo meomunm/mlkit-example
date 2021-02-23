@@ -10,9 +10,14 @@ import com.google.mlkit.vision.face.*
 import java.util.*
 import kotlin.collections.ArrayList
 
-class FaceDetectorProcessor(context: Context, detectorOptions: FaceDetectorOptions?, private var callbackInitSuccess: CallbackInitSuccess? = null) :
+class FaceDetectorProcessor(
+    context: Context,
+    detectorOptions: FaceDetectorOptions?,
+    private var callbackInitSuccess: CallbackInitSuccess? = null
+) :
     VisionProcessorBase<List<Face>>(context) {
 
+    private val listBox = ArrayList<Pair<Float, Float>>()
     private lateinit var faceGraphic: FaceGraphic
     private val detector: FaceDetector
 
@@ -38,9 +43,8 @@ class FaceDetectorProcessor(context: Context, detectorOptions: FaceDetectorOptio
     }
 
     override fun onSuccess(results: List<Face>, graphicOverlay: GraphicOverlay) {
-        val listBox = ArrayList<Pair<Float, Float>>()
         for (face in results) {
-            Log.e(TAG, "onSuccess: size ${face.allContours.size} ")
+            Log.e(TAG, "onSuccess: size ${face.allContours.size} -> ${results.size} ")
             faceGraphic = FaceGraphic(graphicOverlay, face)
             graphicOverlay.add(faceGraphic)
             listBox.add(faceGraphic.boxFace)
@@ -57,11 +61,12 @@ class FaceDetectorProcessor(context: Context, detectorOptions: FaceDetectorOptio
 
     // Return scale sx and sy params of method scale canvas
     private fun getScaleValue(box: List<Pair<Float, Float>>): Pair<Float, Float> {
-        Log.e(TAG, "onSuccess: result.size = ${box.toString()}")
+        Log.e(TAG, "onSuccess: result.size = ${box.toString()} -> ${box.size}")
         // first = width, second = height
-            val scaleX = box.first().first * box.last().second
-            val scaleY = box.first().second * box.last().first
-            return Pair(first = scaleX, second = scaleY)
+        val scaleX = 1/(box.first().first / box.last().first)
+        val scaleY = 1/(box.first().second / box.last().second)
+        Log.e(TAG, "getScaleValue: $scaleX ----- $scaleY")
+        return Pair(first = scaleX, second = scaleY)
     }
 
     companion object {
@@ -119,7 +124,12 @@ class FaceDetectorProcessor(context: Context, detectorOptions: FaceDetectorOptio
                     } else {
                         val landmarkPosition = landmark.position
                         val landmarkPositionStr =
-                            String.format(Locale.US, "x: %f , y: %f", landmarkPosition.x, landmarkPosition.y)
+                            String.format(
+                                Locale.US,
+                                "x: %f , y: %f",
+                                landmarkPosition.x,
+                                landmarkPosition.y
+                            )
                         Log.v(
                             MANUAL_TESTING_LOG,
                             "Position for face landmark: " +

@@ -217,7 +217,7 @@ class PreviewImageActivity : AppCompatActivity(), CallbackInitSuccess {
     override fun onInitSuccess(results: Pair<Float, Float>) {
         Log.e(TAG, "onInitSuccess: nay truaaa ${results.first} ${results.second}" )
         ivPreview.imageMatrix = Matrix().apply {
-            setScale(0.7f, 0.7f, 500f, 270f)
+            setScale(results.first, results.second, 500f, 270f)
         }
     }
 }

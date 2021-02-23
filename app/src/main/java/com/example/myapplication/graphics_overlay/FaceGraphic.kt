@@ -21,9 +21,9 @@ class FaceGraphic constructor(overlay: GraphicOverlay?, private val face: Face) 
 
     var boxFace: Pair<Float, Float> = getSizeEdge(
         getPositionEdge(EdgeBoxBorder.LEFT, face.allContours),
-        getPositionEdge(EdgeBoxBorder.TOP, face.allContours),
         getPositionEdge(EdgeBoxBorder.RIGHT, face.allContours),
-        getPositionEdge(EdgeBoxBorder.BOTTOM, face.allContours)
+        getPositionEdge(EdgeBoxBorder.BOTTOM, face.allContours),
+        getPositionEdge(EdgeBoxBorder.TOP, face.allContours)
     )
 
     init {
@@ -164,6 +164,7 @@ class FaceGraphic constructor(overlay: GraphicOverlay?, private val face: Face) 
         // 2 image -> 4 size edge
         // w = x1 - x
         // h = y1 - y
+        Log.e(TAG, "getSizeEdge: -----> $right ----> $top")
         val width = right - left
         val height = bottom - top
         return Pair(first = width, second = height)
