@@ -245,6 +245,5 @@ public class GraphicOverlay extends View {
         path.moveTo(0, getHeight()*0.9f);
         path.quadTo(getWidth()/2f,getHeight()*0.7f,getWidth(), getHeight()*0.9f);
         canvas.drawPath(path, paint);
-
     }
 }

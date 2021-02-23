@@ -7,7 +7,6 @@ import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.util.Pair
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.ImageView
@@ -15,19 +14,25 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import com.example.myapplication.R
 import com.example.myapplication.custom.GraphicOverlay
+import com.example.myapplication.detector.CallbackInitSuccess
 import com.example.myapplication.detector.FaceDetectorProcessor
 import com.example.myapplication.preference.BitmapUtils
 import com.example.myapplication.preference.PreferenceUtils
 import com.example.myapplication.preference.VisionImageProcessor
 import com.example.myapplication.singleton.SwitchStateBuilder
+import com.google.mlkit.vision.face.Face
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import kotlin.math.max
 
-class PreviewImageActivity : AppCompatActivity() {
+class PreviewImageActivity : AppCompatActivity(), CallbackInitSuccess {
     private lateinit var ivPreview: ImageView
     private lateinit var btnBack: ImageView
     private lateinit var btnDone: ImageView
+
+    private lateinit var faceDetectorProcessor: FaceDetectorProcessor
+
+    private var scaleValue: Pair<Float, Float>? = null
 
     private var imageUri: Uri? = null
     private var graphicOverlay: GraphicOverlay? = null
@@ -110,19 +115,15 @@ class PreviewImageActivity : AppCompatActivity() {
         }
 
         btnDone.setOnClickListener {
-//            val bmp = BitmapUtils.getBitmapFromContentUri(contentResolver, imageUri)!!
-//            val stream = ByteArrayOutputStream()
-//            bmp.compress(Bitmap.CompressFormat.PNG, 100, stream)
-//            val byteArray: ByteArray = stream.toByteArray()
             val intent = Intent(this, ResultActivity::class.java)
-//            intent.putExtra("image", byteArray)
             startActivity(intent)
         }
 
         val faceDetectorOptions =
             PreferenceUtils.getFaceDetectorOptionsForLivePreview(this)
-        imageProcessor =
-            FaceDetectorProcessor(this, faceDetectorOptions)
+        faceDetectorProcessor = FaceDetectorProcessor(this, faceDetectorOptions, this)
+        imageProcessor = faceDetectorProcessor
+//        scaleValue = faceDetectorProcessor.getScaleValue()
     }
 
     private fun tryReloadAndDetectedImage() {
@@ -130,7 +131,8 @@ class PreviewImageActivity : AppCompatActivity() {
             if (imageUri == null) return
             if (SIZE_SCREEN == selectedSize && imageMaxWidth == 0) return
 
-            val imageBitmap = BitmapUtils.getBitmapFromContentUri(contentResolver, imageUri) ?: return
+            val imageBitmap =
+                BitmapUtils.getBitmapFromContentUri(contentResolver, imageUri) ?: return
 
             graphicOverlay!!.clear()
             graphicOverlaySecond!!.clear()
@@ -148,19 +150,27 @@ class PreviewImageActivity : AppCompatActivity() {
                 true
             )
             ivPreview.setImageBitmap(resizedBitmap)
+
             Log.e(TAG, "tryReloadAndDetectedImage: ")
             if (imageProcessor != null) {
                 graphicOverlay!!.setImageSourceInfo(
                     resizedBitmap.width, resizedBitmap.height, /* isFlipped= */false
                 )
-                val secondBm = (AppCompatResources.getDrawable(this, R.drawable.result_not_crop) as BitmapDrawable).bitmap
+                val secondBm = (AppCompatResources.getDrawable(
+                    this,
+                    R.drawable.result_not_crop
+                ) as BitmapDrawable).bitmap
+                val resizedSecondBm = Bitmap.createScaledBitmap(
+                    secondBm,
+                    (imageBitmap.width / scaleFactor).toInt(),
+                    (imageBitmap.height / scaleFactor).toInt(),
+                    true
+                )
                 graphicOverlaySecond!!.setImageSourceInfo(
                     secondBm.width, secondBm.height, /* isFlipped= */false
                 )
-
                 imageProcessor!!.processBitmap(resizedBitmap, graphicOverlay)
-
-                imageProcessor!!.processBitmap(secondBm, graphicOverlaySecond)
+                imageProcessor!!.processBitmap(resizedSecondBm, graphicOverlaySecond)
             } else {
                 Log.e(
                     TAG,
@@ -202,5 +212,12 @@ class PreviewImageActivity : AppCompatActivity() {
         canvas.drawBitmap(bitmapMain, 0f, 0f, paint)
 
         return resultingImage
+    }
+
+    override fun onInitSuccess(results: Pair<Float, Float>) {
+        Log.e(TAG, "onInitSuccess: nay truaaa ${results.first} ${results.second}" )
+        ivPreview.imageMatrix = Matrix().apply {
+            setScale(0.7f, 0.7f, 500f, 270f)
+        }
     }
 }
