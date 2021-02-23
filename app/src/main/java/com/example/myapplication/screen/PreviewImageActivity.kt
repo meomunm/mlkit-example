@@ -1,29 +1,42 @@
 package com.example.myapplication.screen
 
+import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.Bitmap
+import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.util.Pair
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import com.example.myapplication.R
 import com.example.myapplication.custom.GraphicOverlay
+import com.example.myapplication.detector.CallbackInitSuccess
 import com.example.myapplication.detector.FaceDetectorProcessor
 import com.example.myapplication.preference.BitmapUtils
+import com.example.myapplication.preference.PreferenceUtils
 import com.example.myapplication.preference.VisionImageProcessor
+import com.example.myapplication.singleton.SwitchStateBuilder
+import com.google.mlkit.vision.face.Face
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import kotlin.math.max
 
-class PreviewImageActivity : AppCompatActivity() {
+class PreviewImageActivity : AppCompatActivity(), CallbackInitSuccess {
     private lateinit var ivPreview: ImageView
     private lateinit var btnBack: ImageView
+    private lateinit var btnDone: ImageView
+
+    private lateinit var faceDetectorProcessor: FaceDetectorProcessor
+
+    private var scaleValue: Pair<Float, Float>? = null
 
     private var imageUri: Uri? = null
     private var graphicOverlay: GraphicOverlay? = null
+    private var graphicOverlaySecond: GraphicOverlay? = null
     private var imageMaxWidth = 0
     private var selectedSize: String? = SIZE_SCREEN
     private var imageMaxHeight = 0
@@ -52,13 +65,17 @@ class PreviewImageActivity : AppCompatActivity() {
             return Pair(targetWidth, targetHeight)
         }
 
+    override fun onResume() {
+        SwitchStateBuilder.isDetectLiveCamera = false
+        super.onResume()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        SwitchStateBuilder.isDetectLiveCamera = false
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_preview_image)
         initView()
         listener()
-
         isLandScape =
             resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         if (savedInstanceState != null) {
@@ -87,7 +104,9 @@ class PreviewImageActivity : AppCompatActivity() {
         imageUri = intent.data
         ivPreview = findViewById(R.id.iv_preview_image)
         btnBack = findViewById(R.id.btn_back)
+        btnDone = findViewById(R.id.btn_done)
         graphicOverlay = findViewById(R.id.graphic_overlay)
+        graphicOverlaySecond = findViewById(R.id.graphic_overlay_second)
     }
 
     private fun listener() {
@@ -95,8 +114,16 @@ class PreviewImageActivity : AppCompatActivity() {
             finish()
         }
 
-        imageProcessor =
-            FaceDetectorProcessor(this, null)
+        btnDone.setOnClickListener {
+            val intent = Intent(this, ResultActivity::class.java)
+            startActivity(intent)
+        }
+
+        val faceDetectorOptions =
+            PreferenceUtils.getFaceDetectorOptionsForLivePreview(this)
+        faceDetectorProcessor = FaceDetectorProcessor(this, faceDetectorOptions, this)
+        imageProcessor = faceDetectorProcessor
+//        scaleValue = faceDetectorProcessor.getScaleValue()
     }
 
     private fun tryReloadAndDetectedImage() {
@@ -104,9 +131,11 @@ class PreviewImageActivity : AppCompatActivity() {
             if (imageUri == null) return
             if (SIZE_SCREEN == selectedSize && imageMaxWidth == 0) return
 
-            val imageBitmap = BitmapUtils.getBitmapFromContentUri(contentResolver, imageUri) ?: return
+            val imageBitmap =
+                BitmapUtils.getBitmapFromContentUri(contentResolver, imageUri) ?: return
 
             graphicOverlay!!.clear()
+            graphicOverlaySecond!!.clear()
 
             val targetedSize = targetedWidthHeight
 
@@ -121,12 +150,27 @@ class PreviewImageActivity : AppCompatActivity() {
                 true
             )
             ivPreview.setImageBitmap(resizedBitmap)
+
             Log.e(TAG, "tryReloadAndDetectedImage: ")
             if (imageProcessor != null) {
                 graphicOverlay!!.setImageSourceInfo(
                     resizedBitmap.width, resizedBitmap.height, /* isFlipped= */false
                 )
+                val secondBm = (AppCompatResources.getDrawable(
+                    this,
+                    R.drawable.result_not_crop
+                ) as BitmapDrawable).bitmap
+                val resizedSecondBm = Bitmap.createScaledBitmap(
+                    secondBm,
+                    (imageBitmap.width / scaleFactor).toInt(),
+                    (imageBitmap.height / scaleFactor).toInt(),
+                    true
+                )
+                graphicOverlaySecond!!.setImageSourceInfo(
+                    secondBm.width, secondBm.height, /* isFlipped= */false
+                )
                 imageProcessor!!.processBitmap(resizedBitmap, graphicOverlay)
+                imageProcessor!!.processBitmap(resizedSecondBm, graphicOverlaySecond)
             } else {
                 Log.e(
                     TAG,
@@ -152,5 +196,28 @@ class PreviewImageActivity : AppCompatActivity() {
         private const val KEY_IMAGE_MAX_WIDTH = "com.google.mlkit.vision.demo.KEY_IMAGE_MAX_WIDTH"
         private const val KEY_IMAGE_MAX_HEIGHT = "com.google.mlkit.vision.demo.KEY_IMAGE_MAX_HEIGHT"
         private const val KEY_SELECTED_SIZE = "com.google.mlkit.vision.demo.KEY_SELECTED_SIZE"
+    }
+
+    fun getCropImage(width: Int, height: Int, path: Path, bitmapMain: Bitmap): Bitmap {
+        val resultingImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        val canvas = Canvas(resultingImage)
+
+        val paint = Paint()
+        paint.isAntiAlias = true
+
+        canvas.drawPath(path, paint)
+
+        paint.xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(bitmapMain, 0f, 0f, paint)
+
+        return resultingImage
+    }
+
+    override fun onInitSuccess(results: Pair<Float, Float>) {
+        Log.e(TAG, "onInitSuccess: nay truaaa ${results.first} ${results.second}" )
+        ivPreview.imageMatrix = Matrix().apply {
+            setScale(0.7f, 0.7f, 500f, 270f)
+        }
     }
 }

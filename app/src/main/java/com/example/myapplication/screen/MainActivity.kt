@@ -4,13 +4,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.util.Pair
-import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.core.app.ActivityCompat
@@ -19,9 +15,12 @@ import com.example.myapplication.R
 import com.example.myapplication.custom.CameraSource
 import com.example.myapplication.custom.CameraSourcePreview
 import com.example.myapplication.custom.GraphicOverlay
+import com.example.myapplication.custom.ShapeOvalCustom
+import com.example.myapplication.detector.CallbackInitSuccess
 import com.example.myapplication.detector.FaceDetectorProcessor
-import com.example.myapplication.preference.BitmapUtils
 import com.example.myapplication.preference.PreferenceUtils
+import com.example.myapplication.singleton.SwitchStateBuilder
+import com.google.mlkit.vision.face.Face
 import java.io.IOException
 import java.util.ArrayList
 
@@ -31,6 +30,7 @@ class MainActivity : AppCompatActivity(),
     private var cameraSource: CameraSource? = null
     private var preview: CameraSourcePreview? = null
     private var graphicOverlay: GraphicOverlay? = null
+    private var customShapeOval: ShapeOvalCustom? = null
 
     private val requiredPermissions: Array<String?>
         get() = try {
@@ -46,10 +46,15 @@ class MainActivity : AppCompatActivity(),
             arrayOfNulls(0)
         }
 
+    override fun onResume() {
+        SwitchStateBuilder.isDetectLiveCamera = true
+        super.onResume()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        SwitchStateBuilder.isDetectLiveCamera = true
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_vision_live_preview)
-
         preview = findViewById(R.id.preview_view)
         if (preview == null) {
             Log.d(TAG, "Preview is null")
@@ -184,6 +189,8 @@ class MainActivity : AppCompatActivity(),
             }
         }
     }
+
+
 
     companion object {
         private const val REQUEST_CODE_CHOOSE_IMAGE = 1002

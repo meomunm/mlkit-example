@@ -3,14 +3,17 @@ package com.example.myapplication.detector
 import android.content.Context
 import android.util.Log
 import com.example.myapplication.custom.GraphicOverlay
+import com.example.myapplication.graphics_overlay.FaceGraphic
 import com.google.android.gms.tasks.Task
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.*
 import java.util.*
+import kotlin.collections.ArrayList
 
-class FaceDetectorProcessor(context: Context, detectorOptions: FaceDetectorOptions?) :
+class FaceDetectorProcessor(context: Context, detectorOptions: FaceDetectorOptions?, private var callbackInitSuccess: CallbackInitSuccess? = null) :
     VisionProcessorBase<List<Face>>(context) {
 
+    private lateinit var faceGraphic: FaceGraphic
     private val detector: FaceDetector
 
     init {
@@ -34,15 +37,31 @@ class FaceDetectorProcessor(context: Context, detectorOptions: FaceDetectorOptio
         return detector.process(image)
     }
 
-    override fun onSuccess(faces: List<Face>, graphicOverlay: GraphicOverlay) {
-        for (face in faces) {
-            graphicOverlay.add(FaceGraphic(graphicOverlay, face))
-            logExtrasForTesting(face)
+    override fun onSuccess(results: List<Face>, graphicOverlay: GraphicOverlay) {
+        val listBox = ArrayList<Pair<Float, Float>>()
+        for (face in results) {
+            Log.e(TAG, "onSuccess: size ${face.allContours.size} ")
+            faceGraphic = FaceGraphic(graphicOverlay, face)
+            graphicOverlay.add(faceGraphic)
+            listBox.add(faceGraphic.boxFace)
+//            logExtrasForTesting(face)
+        }
+        if (listBox.isNotEmpty()) {
+            callbackInitSuccess?.onInitSuccess(getScaleValue(listBox))
         }
     }
 
     override fun onFailure(e: Exception) {
         Log.e(TAG, "Face detection failed $e")
+    }
+
+    // Return scale sx and sy params of method scale canvas
+    private fun getScaleValue(box: List<Pair<Float, Float>>): Pair<Float, Float> {
+        Log.e(TAG, "onSuccess: result.size = ${box.toString()}")
+        // first = width, second = height
+            val scaleX = box.first().first * box.last().second
+            val scaleY = box.first().second * box.last().first
+            return Pair(first = scaleX, second = scaleY)
     }
 
     companion object {
@@ -129,4 +148,8 @@ class FaceDetectorProcessor(context: Context, detectorOptions: FaceDetectorOptio
             }
         }
     }
+}
+
+interface CallbackInitSuccess {
+    fun onInitSuccess(results: Pair<Float, Float>)
 }

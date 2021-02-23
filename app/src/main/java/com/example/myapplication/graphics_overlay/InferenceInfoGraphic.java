@@ -1,4 +1,4 @@
-package com.example.myapplication.preference;
+package com.example.myapplication.graphics_overlay;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -42,14 +42,14 @@ public class InferenceInfoGraphic extends GraphicOverlay.Graphic {
     public synchronized void draw(Canvas canvas) {
 //        float x = TEXT_SIZE * 0.5f;
 //        float y = TEXT_SIZE * 1.5f;
-
+//
 //        canvas.drawText(
 //                "InputImage size: " + overlay.getImageWidth() + "x" + overlay.getImageHeight(),
 //                x,
 //                y,
 //                textPaint);
-
-        // Draw FPS (if valid) and inference latency
+//
+////         Draw FPS (if valid) and inference latency
 //        if (framesPerSecond != null) {
 //            canvas.drawText(
 //                    "FPS: " + framesPerSecond + ", Frame latency: " + frameLatency + " ms",
@@ -63,6 +63,5 @@ public class InferenceInfoGraphic extends GraphicOverlay.Graphic {
 //            canvas.drawText(
 //                    "Detector latency: " + detectorLatency + " ms", x, y + TEXT_SIZE * 2, textPaint);
 //        }
-
-    }
+     }
 }

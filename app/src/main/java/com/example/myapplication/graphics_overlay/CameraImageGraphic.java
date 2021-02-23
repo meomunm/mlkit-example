@@ -1,4 +1,4 @@
-package com.example.myapplication.preference;
+package com.example.myapplication.graphics_overlay;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
